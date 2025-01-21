@@ -2,20 +2,139 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Global Styles */
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #4caf50, #81c784);
+  color: #333;
+}
+
+/* Header Styles */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #388e3c;
+}
+
+header h1 {
+  color: #fff;
+  font-size: 1.8em;
+  margin: 0;
+}
+
+header ul {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+header li {
+  margin: 0 10px;
+}
+
+header a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 1em;
+  transition: color 0.3s;
+}
+
+/* Main Content Styles */
+main {
+  padding: 40px 20px;
+}
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.hero-text {
+  max-width: 600px;
+}
+
+.hero-text h2 {
+  font-size: 2.5em;
+  margin: 0 0 20px;
+}
+
+.hero-text p {
+  font-size: 1.2em;
+  margin: 0 0 20px;
+}
+
+.hero-text a {
+  display: inline-block;
+  background-color: #4caf50;
+  color: #fff;
+  padding: 10px 20px;
+  text-decoration: none;
+  border-radius: 5px;
+  font-weight: bold;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.hero img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Features Section */
+.features {
+  text-align: center;
+  padding: 40px 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  margin-top: 20px;
+  max-width: 1200px;
+  margin: 20px auto;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.features h3 {
+  font-size: 2em;
+  margin: 0 0 20px;
+}
+
+.features ul {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.features li {
+  text-align: center;
+  flex: 1;
+}
+
+.features img {
+  max-width: 120px;
+  margin-bottom: 10px;
+}
+
+.features p {
+  font-size: 1.2em;
+  margin: 10px 0;
+}
+
+hr {
+  border: 1px solid #333;
+  width: 80%;
+  margin: 20px auto;
 }
