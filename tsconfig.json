@@ -28,7 +28,7 @@
     ".next/types/**/*.ts", // Includes Next.js generated types
     "**/*.ts", // Includes TypeScript files
     "**/*.tsx" // Includes TypeScript JSX files
-  ],
+, "src/app/pages/admin-dashboard.js", "src/app/pages/customer-dashboard.js", "src/app/pages/owner-dashboard.js", "src/app/pages/customer-dashboard/page.js"  ],
   "exclude": [
     "node_modules" // Excludes dependencies from type checking
   ]
