@@ -1,74 +1,46 @@
-import React from "react";
-import "./globals.css";
+'use client';
 
-export default function HomePage() {
+import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+
+export default function Home() {
+  const { data: session } = useSession();
+
   return (
-    <div>
-      <header>
-        <h1>Bike Rental</h1>
-        <nav>
-          <ul>
-            <li>
-              <a href="/auth/login">Home</a>
-            </li>
-            <li>
-              <a href="/auth/login">About</a>
-            </li>
-            <li>
-              <a href="/auth/login">Services</a>
-            </li>
-            <li>
-              <a href="/auth/login">Contact</a>
-            </li>
-          </ul>
-        </nav>
-      </header>
-      <main>
-        <section className="hero">
-          <div className="hero-text">
-            <h2>Bike Rental Application</h2>
-            <p>
-              The easiest way to rent bikes for your adventures. Quick, simple,
-              and reliable!
-            </p>
-            <a href="/auth/login">Get Started</a>
-          </div>
-          <div className="hero-image">
-            <img
-              src="/images/homepage.jpg"
-              alt="Bike rental illustration"
-            />
-          </div>
-        </section>
-        <section className="features">
-          <h3>Why Choose Us?</h3>
-          <ul>
-            <li>
-              <img
-                src="/images/affordable.jpg"
-                alt="Feature 1"
-              />
-              <p>Affordable Pricing</p>
-            </li>
-            <hr />
-            <li>
-              <img
-                src="/images/wide.jpg"
-                alt="Feature 2"
-              />
-              <p>Wide Variety of Bikes</p>
-            </li>
-            <hr />
-            <li>
-              <img
-                src="/images/booking.png"
-                alt="Feature 3"
-              />
-              <p>Easy Booking Process</p>
-            </li>
-          </ul>
-        </section>
-      </main>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <div className="relative h-[600px] bg-gradient-to-r from-green-900 to-green-700">
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-4">
+          <h1 className="text-5xl md:text-6xl font-bold mb-6">
+            Rent Your Dream Bike Today
+          </h1>
+          <p className="text-xl md:text-2xl mb-8 max-w-2xl">
+            Experience the thrill of riding premium motorcycles at affordable rates
+          </p>
+          {!session ? (
+            <div className="space-x-4">
+              <Link
+                href="/auth/signin"
+                className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg text-lg"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/auth/register"
+                className="bg-white hover:bg-gray-100 text-green-600 font-bold py-3 px-8 rounded-lg text-lg"
+              >
+                Sign Up
+              </Link>
+            </div>
+          ) : (
+            <Link
+              href="/dashboard"
+              className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg text-lg"
+            >
+              Go to Dashboard
+            </Link>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

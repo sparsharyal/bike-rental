@@ -1,0 +1,101 @@
+-- Drop existing tables if they exist
+DROP TABLE IF EXISTS notifications;
+DROP TABLE IF EXISTS payments;
+DROP TABLE IF EXISTS reviews;
+DROP TABLE IF EXISTS rentals;
+DROP TABLE IF EXISTS bikes;
+DROP TABLE IF EXISTS users;
+
+-- Create database
+DROP DATABASE IF EXISTS bike_rentals;
+CREATE DATABASE IF NOT EXISTS bike_rentals;
+USE bike_rentals;
+
+-- Users table
+CREATE TABLE IF NOT EXISTS users (
+    id VARCHAR(36) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('CUSTOMER', 'OWNER', 'ADMIN') DEFAULT 'CUSTOMER',
+    is_approved BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Bikes table
+CREATE TABLE IF NOT EXISTS bikes (
+    id VARCHAR(36) PRIMARY KEY,
+    model VARCHAR(255) NOT NULL,
+    type ENUM('COMMUTER', 'SPORT', 'ADVENTURE', 'CRUISER', 'SCOOTER', 'OFFROAD', 'ELECTRIC') NOT NULL,
+    brand VARCHAR(255) NOT NULL,
+    year INT NOT NULL,
+    cc INT NOT NULL,
+    description TEXT,
+    hourly_rate DECIMAL(10, 2) NOT NULL,
+    daily_rate DECIMAL(10, 2) NOT NULL,
+    location VARCHAR(255) NOT NULL,
+    latitude DECIMAL(10, 8),
+    longitude DECIMAL(11, 8),
+    available BOOLEAN DEFAULT true,
+    images JSON,
+    features JSON,
+    documents JSON,
+    owner_id VARCHAR(36) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Rentals table
+CREATE TABLE IF NOT EXISTS rentals (
+    id VARCHAR(36) PRIMARY KEY,
+    start_date DATETIME NOT NULL,
+    end_date DATETIME NOT NULL,
+    status ENUM('PENDING', 'APPROVED', 'ACTIVE', 'COMPLETED', 'CANCELLED', 'REJECTED') DEFAULT 'PENDING',
+    total_amount DECIMAL(10, 2) NOT NULL,
+    bike_id VARCHAR(36) NOT NULL,
+    renter_id VARCHAR(36) NOT NULL,
+    tracking_data JSON,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (bike_id) REFERENCES bikes(id) ON DELETE CASCADE,
+    FOREIGN KEY (renter_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Reviews table
+CREATE TABLE IF NOT EXISTS reviews (
+    id VARCHAR(36) PRIMARY KEY,
+    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    comment TEXT,
+    bike_id VARCHAR(36) NOT NULL,
+    user_id VARCHAR(36) NOT NULL,
+    rental_id VARCHAR(36) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (bike_id) REFERENCES bikes(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (rental_id) REFERENCES rentals(id) ON DELETE CASCADE
+);
+
+-- Payments table
+CREATE TABLE IF NOT EXISTS payments (
+    id VARCHAR(36) PRIMARY KEY,
+    amount DECIMAL(10, 2) NOT NULL,
+    status ENUM('PENDING', 'COMPLETED', 'FAILED', 'REFUNDED') DEFAULT 'PENDING',
+    method ENUM('CREDIT_CARD', 'DEBIT_CARD', 'BANK_TRANSFER', 'CASH', 'DIGITAL_WALLET') NOT NULL,
+    rental_id VARCHAR(36) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (rental_id) REFERENCES rentals(id) ON DELETE CASCADE
+);
+
+-- Notifications table
+CREATE TABLE IF NOT EXISTS notifications (
+    id VARCHAR(36) PRIMARY KEY,
+    user_id VARCHAR(36) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);

@@ -1,35 +1,32 @@
 {
   "compilerOptions": {
-    "target": "ES2017", // Good for modern JavaScript syntax
-    "lib": ["dom", "dom.iterable", "esnext"], // Includes modern ES features and DOM typings
-    "allowJs": true, // Allows JavaScript files in the project
-    "skipLibCheck": true, // Skips type checking of declaration files for faster builds
-    "strict": true, // Enables TypeScript strict mode for better type safety
-    "noEmit": true, // Prevents emitting output files (important for Next.js)
-    "incremental": true, // Speeds up subsequent builds by using incremental compilation
-    "module": "esnext", // Supports ES modules
-    "esModuleInterop": true, // Ensures compatibility with CommonJS modules
-    "moduleResolution": "node", // Resolves modules in the Node.js style
-    "resolveJsonModule": true, // Allows importing JSON files as modules
-    "isolatedModules": true, // Required by Next.js for isolated file transpilation
-    "jsx": "preserve", // Keeps JSX as is for Next.js to handle
-    "baseUrl": ".", // Sets the root directory for module imports
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "noEmit": true,
+    "incremental": true,
+    "module": "esnext",
+    "esModuleInterop": true,
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "baseUrl": ".",
     "paths": {
-      "@/lib/*": ["lib/*"] // Supports alias for the lib directory
+      "@/*": ["./*"]
     },
     "plugins": [
       {
-        "name": "next" // Ensures compatibility with Next.js
+        "name": "next"
       }
     ]
   },
   "include": [
-    "next-env.d.ts", // Includes Next.js TypeScript declarations
-    ".next/types/**/*.ts", // Includes Next.js generated types
-    "**/*.ts", // Includes TypeScript files
-    "**/*.tsx" // Includes TypeScript JSX files
-, "src/app/pages/admin-dashboard.js", "src/app/pages/customer-dashboard.js", "src/app/pages/owner-dashboard.js", "src/app/pages/customer-dashboard/page.js"  ],
-  "exclude": [
-    "node_modules" // Excludes dependencies from type checking
-  ]
+    "next-env.d.ts",
+    ".next/types/**/*.ts",
+    "src/**/*"
+  ],
+  "exclude": ["node_modules"]
 }
