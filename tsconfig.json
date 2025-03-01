@@ -15,7 +15,11 @@
     "jsx": "preserve",
     "baseUrl": ".",
     "paths": {
+<<<<<<< HEAD
       "@/*": ["src/*"]
+=======
+      "@/*": ["./*"]
+>>>>>>> 62488ab270a13ac4108d262168a4172ffb5e312a
     },
     "plugins": [
       {
@@ -23,6 +27,14 @@
       }
     ]
   },
+<<<<<<< HEAD
   "include": ["next-env.d.ts", ".next/types/**/*.ts", "src/**/*"],
+=======
+  "include": [
+    "next-env.d.ts",
+    ".next/types/**/*.ts",
+    "src/**/*"
+  ],
+>>>>>>> 62488ab270a13ac4108d262168a4172ffb5e312a
   "exclude": ["node_modules"]
 }
