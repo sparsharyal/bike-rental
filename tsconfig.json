@@ -1,40 +1,27 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
+    "target": "ES2022",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
+    "strictPropertyInitialization": false,
     "noEmit": true,
     "incremental": true,
-    "module": "esnext",
+    "module": "NodeNext",
+    "moduleResolution": "Bundler",
     "esModuleInterop": true,
-    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "baseUrl": ".",
+    "baseUrl": "src",
     "paths": {
-<<<<<<< HEAD
-      "@/*": ["src/*"]
-=======
-      "@/*": ["./*"]
->>>>>>> 62488ab270a13ac4108d262168a4172ffb5e312a
+      "@/*": ["*"]
     },
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ]
+    "forceConsistentCasingInFileNames": true,
+    "types": ["node", "jest"],
+    "plugins": [{ "name": "next" }]
   },
-<<<<<<< HEAD
-  "include": ["next-env.d.ts", ".next/types/**/*.ts", "src/**/*"],
-=======
-  "include": [
-    "next-env.d.ts",
-    ".next/types/**/*.ts",
-    "src/**/*"
-  ],
->>>>>>> 62488ab270a13ac4108d262168a4172ffb5e312a
-  "exclude": ["node_modules"]
+  "include": ["next-env.d.ts", ".next/types/**/*.ts", "**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", ".next", "dist"]
 }

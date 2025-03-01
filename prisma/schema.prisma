@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(uuid())  // Changed from Int to String (UUID)
+  name       String
+  email      String   @unique
+  password   String
+  role       Role
+  status     Status   @default(PENDING)
+  isApproved Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  // Relations
+  bikes   Bike[]
+  rentals Rental[]
+  reviews Review[]
+}
+
+model Bike {
+  id        Int     @id @default(autoincrement())
+  ownerId   String  // Updated type to match new User UUID format
+  model     String
+  price     Float
+  location  String
+  available Boolean @default(true)
+
+  owner   User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  reviews Review[]
+  rentals Rental[]
+}
+
+model Rental {
+  id         Int          @id @default(autoincrement())
+  customerId String       // Updated type to match new User UUID format
+  bikeId     Int
+  startDate  DateTime
+  endDate    DateTime?
+  status     RentalStatus @default(ONGOING)
+
+  bike     Bike     @relation(fields: [bikeId], references: [id], onDelete: Cascade)
+  customer User     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  payment  Payment?
+}
+
+model Payment {
+  id       Int           @id @default(autoincrement())
+  rentalId Int           @unique
+  amount   Float
+  method   PaymentMethod
+  status   PaymentStatus @default(PENDING)
+
+  rental Rental @relation(fields: [rentalId], references: [id], onDelete: Cascade)
+}
+
+model Review {
+  id      Int    @id @default(autoincrement())
+  bikeId  Int
+  userId  String  // Updated type to match new User UUID format
+  rating  Int
+  comment String
+
+  bike Bike @relation(fields: [bikeId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  ADMIN
+  OWNER
+  CUSTOMER
+}
+
+enum Status {
+  PENDING
+  APPROVED
+}
+
+enum RentalStatus {
+  ONGOING
+  COMPLETED
+  CANCELED
+}
+
+enum PaymentMethod {
+  KHALTI
+  ESEWA
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
