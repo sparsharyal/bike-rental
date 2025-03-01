@@ -9,9 +9,8 @@ export default function AuthPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("CUSTOMER"); // Default role
+  const [role, setRole] = useState("CUSTOMER");
   const [error, setError] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // New state to track login status
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,12 +24,20 @@ export default function AuthPage() {
       });
 
       const result = await response.json();
-      console.log("Login Response:", result); // Debugging response
+      console.log("Login Response:", result);
 
       if (response.ok) {
-        localStorage.setItem("token", result.token); // Store token
-        localStorage.setItem("role", result.role); // Store role
-        setIsLoggedIn(true); // Update login state
+        document.cookie = `token=${result.token}; path=/; Secure; HttpOnly; SameSite=Strict`; // Set cookie
+        document.cookie = `role=${result.role}; path=/; Secure; SameSite=Strict`; // Store role
+
+        // Redirect based on role
+        if (result.role === "ADMIN") {
+          router.push("/admin-dashboard");
+        } else if (result.role === "OWNER") {
+          router.push("/owner-dashboard");
+        } else {
+          router.push("/customer-dashboard");
+        }
       } else {
         setError(result.message || "Invalid login credentials!");
       }
@@ -40,30 +47,13 @@ export default function AuthPage() {
     }
   };
 
-// UseEffect to handle redirection after login
-useEffect(() => {
-  if (isLoggedIn) {
-    const userRole = localStorage.getItem("role");
-    console.log("Redirecting role:", userRole); // Debugging
-
-    if (userRole === "ADMIN") {
-      router.push("/admin-dashboard");
-    } else if (userRole === "OWNER") {
-      router.push("/owner-dashboard"); 
-    } else {
-      router.push("/customer-dashboard"); 
-    }
-  }
-}, [isLoggedIn, router]);
-
-
   return (
     <div className="auth-page">
       <div className="form-container">
         <form onSubmit={handleSubmit} className="auth-form">
           <h2>Login</h2>
 
-          {error && <p className="error-message">{error}</p>} {/* Show error if exists */}
+          {error && <p className="error-message">{error}</p>}
 
           <input
             type="email"
@@ -80,7 +70,6 @@ useEffect(() => {
             required
           />
 
-          {/* Role Selection */}
           <select value={role} onChange={(e) => setRole(e.target.value.toUpperCase())}>
             <option value="CUSTOMER">Customer</option>
             <option value="OWNER">Owner</option>
