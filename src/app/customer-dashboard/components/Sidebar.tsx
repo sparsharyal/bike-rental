@@ -1,4 +1,4 @@
-"use client"; // Mark this component as a Client Component
+"use client";
 
 import React from "react";
 import Link from "next/link";
@@ -8,9 +8,9 @@ const Sidebar = () => {
   const router = useRouter(); // Initialize the router
 
   const menuItems = [
-    { name: "Browse Bikes", path: "/customer/bikes" },
-    { name: "Rental History", path: "/customer/history" },
-    { name: "Payments", path: "/customer/payments" },
+    { name: "Browse Bikes", path: "/customer-dashboard/bikes" },
+    { name: "Rental History", path: "/customer-dashboard/history" },
+    { name: "Payments", path: "/customer-dashboard/payments" },
   ];
 
   const handleLogout = () => {

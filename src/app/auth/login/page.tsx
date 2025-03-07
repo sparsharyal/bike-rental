@@ -81,7 +81,8 @@ export default function AuthPage() {
 
         <p>
           Don't have an account?{" "}
-          <Link href="/auth/signup" className="Signup-link"><b>
+          <Link href="/auth/signup" className="Signup-link">
+            <b>
             Signup
             </b>
           </Link>

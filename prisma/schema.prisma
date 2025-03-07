@@ -25,16 +25,18 @@ model User {
 
 model Bike {
   id        Int     @id @default(autoincrement())
-  ownerId   String  // Updated type to match new User UUID format
+  ownerId   String  // Ensure this matches User.id type
   model     String
   price     Float
   location  String
   available Boolean @default(true)
+  image     String  // Add image field to store bike images
 
   owner   User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   reviews Review[]
   rentals Rental[]
 }
+
 
 model Rental {
   id         Int          @id @default(autoincrement())
