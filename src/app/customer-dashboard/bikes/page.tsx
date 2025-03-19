@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation"; // Import useRouter
 
 interface Bike {
   id: number;
@@ -18,6 +19,8 @@ export default function BikeList() {
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
 
+  const router = useRouter(); // Initialize router
+
   useEffect(() => {
     fetch(`/api/bikes?model=${search}&location=${location}&minPrice=${minPrice}&maxPrice=${maxPrice}`)
       .then((res) => res.json())
@@ -26,6 +29,14 @@ export default function BikeList() {
 
   return (
     <div className="p-6">
+      {/* Back Button */}
+      <button
+        onClick={() => router.back()} 
+        className="mb-4 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-800"
+      >
+        ← Back
+      </button>
+
       <div className="mb-4 flex gap-4">
         <input
           type="text"

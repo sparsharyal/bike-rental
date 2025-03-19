@@ -22,7 +22,7 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="w-1/4 bg-gray-800 text-white p-4 flex flex-col justify-between h-full">
+    <aside className="w-1/4 bg-green-700 text-white p-4 flex flex-col justify-between h-full">
       <div>
         <h2 className="text-xl font-bold">Customer Dashboard</h2>
         <ul className="mt-4">
