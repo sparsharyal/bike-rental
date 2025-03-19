@@ -21,7 +21,38 @@ const ListBike = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Bike listed:", bike);
+    try {
+      const formData = new FormData();
+      formData.append('name', bike.name);
+      formData.append('description', bike.description);
+      formData.append('price', bike.price);
+      formData.append('location', bike.location);
+      if (bike.image) {
+        formData.append('image', bike.image);
+      }
+
+      const response = await fetch('/api/bikes', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to list bike');
+      }
+
+      const data = await response.json();
+      alert('Bike listed successfully!');
+      setBike({
+        name: '',
+        description: '',
+        price: '',
+        location: '',
+        image: null,
+      });
+    } catch (error) {
+      console.error('Error listing bike:', error);
+      alert('Failed to list bike. Please try again.');
+    }
   };
 
   return (
