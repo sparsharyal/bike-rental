@@ -1,39 +1,34 @@
-import { NextResponse } from "next/server";
-import { jwtVerify } from "jose";
+import { NextResponse, NextRequest } from 'next/server';
+export { default } from "next-auth/middleware";
+import { getToken } from "next-auth/jwt";
 
-export async function middleware(req: Request) {
-  const cookies = req.headers.get("cookie");
-  const token = cookies?.split("; ").find((c) => c.startsWith("token="))?.split("=")[1];
+// This function can be marked `async` if using `await` inside
+export async function middleware(request: NextRequest) {
 
-  if (!token) {
-    return NextResponse.redirect(new URL("/auth/login", req.url));
-  }
+    const token = await getToken({req: request});
+    const url = request.nextUrl;
 
-  try {
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(process.env.JWT_SECRET!));
-    const role = payload.role.toUpperCase(); // Ensure consistency
-
-    const path = req.nextUrl.pathname;
-
-    if (path.startsWith("/admin-dashboard") && role !== "ADMIN") {
-      return NextResponse.redirect(new URL("/", req.url));
+    if (token && 
+        (
+            url.pathname.startsWith("/sign-in") ||
+            url.pathname.startsWith("/sign-up") ||
+            url.pathname.startsWith("/verify") ||
+            url.pathname.startsWith("/")
+        )
+    ) {
+        return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
-    if (path.startsWith("/owner-dashboard") && role !== "OWNER") {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
-
-    if (path.startsWith("/customer-dashboard") && role !== "CUSTOMER") {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
-
-    return NextResponse.next();
-  } catch (error) {
-    console.error("JWT verification failed:", error);
-    return NextResponse.redirect(new URL("/auth/login", req.url));
-  }
+    // return NextResponse.redirect(new URL('/home', request.url));
 }
 
+// See "Matching Paths" below to learn more
 export const config = {
-  matcher: ["/admin-dashboard", "/owner-dashboard", "/customer-dashboard"],
-};
+    matcher: [
+        "/sign-in",
+        "/sign-up",
+        "/",
+        "/dashboard/:path*",
+        "/verify/:path*"
+    ]
+}
