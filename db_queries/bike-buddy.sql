@@ -90,4 +90,4 @@ SELECT * FROM `Review`;
 SELECT * FROM `Notification`;
 
 INSERT INTO `User` (`id`, `fullName`, `email`, `contact`, `password`, `role`)
-VALUES (1, "Subham Adhikari", "bikebuddy_admin@gmail.com", "9876543210", "admin@123", "admin");
+VALUES (1, "Sparsh Aryal", "admin@gmail.com", "9741689246", "admin@123", "admin");
