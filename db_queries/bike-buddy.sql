@@ -5,7 +5,7 @@ DROP DATABASE bike_buddy;
 CREATE TABLE `User` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `fullName` VARCHAR(255) NOT NULL,
-  `username` VARCHAR(255) NOT NULL UNIQUE,
+  `username` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL UNIQUE ,
   `email` VARCHAR(255) NOT NULL UNIQUE,
   `contact` VARCHAR(255) NOT NULL,
   `password` VARCHAR(255) NOT NULL,
@@ -13,6 +13,8 @@ CREATE TABLE `User` (
   `verifyCode` VARCHAR(255),
   `verifyCodeExpiryDate` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `isVerified` BOOLEAN DEFAULT FALSE,
+  `verifyEmailResetPassword` VARCHAR(255),
+  `verifyEmailResetPasswordExpiryDate` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `role` ENUM('customer', 'owner', 'admin') NOT NULL DEFAULT 'customer',
   `createdAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updatedAt` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -90,4 +92,7 @@ SELECT * FROM `Review`;
 SELECT * FROM `Notification`;
 
 INSERT INTO `User` (`id`, `fullName`, `email`, `contact`, `password`, `role`)
-VALUES (1, "Sparsh Aryal", "admin@gmail.com", "9741689246", "admin@123", "admin");
+VALUES (1, "Subham Adhikari", "bikebuddy_admin@gmail.com", "9876543210", "admin@123", "admin");
+
+ALTER TABLE `User` MODIFY `username` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;
+DELETE FROM `User` WHERE `email`="subhamadhikari20@gmail.com";

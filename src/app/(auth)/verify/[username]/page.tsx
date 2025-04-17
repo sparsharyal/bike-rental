@@ -1,3 +1,4 @@
+// src/app/(auth)/verify/[username]/page.tsx
 "use client"
 import React from 'react';
 import { useParams, useRouter } from "next/navigation";
@@ -18,12 +19,14 @@ const VerifyAccount = () => {
 
     const form = useForm<z.infer<typeof verifySchema>>({
         resolver: zodResolver(verifySchema),
-
+        defaultValues: {
+            code: ""
+        }
     });
 
     const onSubmit = async (data: z.infer<typeof verifySchema>) => {
         try {
-            const response = await axios.post(`api/verify-code`, {
+            const response = await axios.post(`/api/auth/verify-code`, {
                 username: params.username,
                 code: data.code
             })
