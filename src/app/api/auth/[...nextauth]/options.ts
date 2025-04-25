@@ -38,9 +38,9 @@ export const authOptions: NextAuthOptions = {
                         throw new Error("Role does not match");
                     }
 
-                    if (!user.isVerified) {
-                        throw new Error("Please, verifiy yyour account before login");
-                    }
+                    // if (!user.isVerified) {
+                    //     throw new Error("Could not determine your user profile. Please, verifiy your account before login");
+                    // }
 
                     const isPasswordCorrect = await bcrypt.compare(credentials.password, user.password);
 
@@ -65,23 +65,27 @@ export const authOptions: NextAuthOptions = {
     callbacks: {
         async jwt({ token, user }) {
             if (user) {
-                token._id = user._id?.toString();
+                token.id = user.id?.toString();
                 token.isVerified = user.isVerified;
                 token.fullName = user.fullName;
                 token.username = user.username;
                 token.email = user.email;
                 token.role = user.role;
+                token.contact = user.contact
+                token.profilePictureUrl = user.profilePictureUrl
             }
             return token;
         },
         async session({ session, token }) {
             if (token) {
-                session.user._id = token._id;
+                session.user.id = token.id;
                 session.user.isVerified = token.isVerified;
                 session.user.fullName = token.fullName;
                 session.user.username = token.username;
                 session.user.email = token.email;
                 session.user.role = token.role;
+                session.user.contact = token.contact
+                session.user.profilePictureUrl = token.profilePictureUrl
             }
             return session;
         },

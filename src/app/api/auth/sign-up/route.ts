@@ -1,4 +1,4 @@
-// src/api/sign-up/route.ts
+// src/app/api/auth/sign-up/route.ts
 import bcrypt from "bcryptjs";
 import { sendVerificationEmail } from "@/helpers/sendVerificationEmail";
 import { createUser, getUserByEmail, getUserByUsername } from "@/model/User";
@@ -51,13 +51,13 @@ export const POST = async (req: Request) => {
             else {
                 const salt = bcrypt.genSaltSync(10);
                 const hashedPassword = await bcrypt.hash(password, salt);
-                const expiryDate = new Date()
-                expiryDate.setHours(expiryDate.getHours() + 1);
+                const expiryDate = new Date();
+                expiryDate.setMinutes(expiryDate.getMinutes() + 10);    // Add 10 mins from 'now'
 
                 existingUserByEmail.password = hashedPassword;
                 existingUserByEmail.verifyCode = otp;
                 existingUserByEmail.verifyCodeExpiryDate = expiryDate;
-                
+
                 // await existingUserByEmail.save();
             }
             return Response.json(
@@ -75,7 +75,7 @@ export const POST = async (req: Request) => {
             const hashedPassword = await bcrypt.hash(password, salt);
 
             const expiryDate = new Date()
-            expiryDate.setHours(expiryDate.getHours() + 1);
+            expiryDate.setMinutes(expiryDate.getMinutes() + 10); 
 
             const newUser = await createUser({
                 fullName,

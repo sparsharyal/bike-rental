@@ -71,7 +71,7 @@ export async function updateUser(
         email: string;
         password: string;
         contact: string;
-        profilePictureUr?: string;
+        profilePictureUrl?: string;
         verifyCode?: string | null;
         verifyCodeExpiryDate?: Date | null;
         isVerified?: boolean;
@@ -94,6 +94,12 @@ export async function deleteUser(id: number): Promise<User> {
 
 export async function getAllUsers(): Promise<User[]> {
     return await prisma.user.findMany();
+}
+
+export async function getAllOwners(): Promise<User[]> {
+    return await prisma.user.findMany({
+        where: { role: Role.owner },
+    });
 }
 
 export async function resetPassword(

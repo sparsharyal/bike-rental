@@ -3,33 +3,39 @@ import { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
     interface User {
-        _id?: string;
+        id?: string;
         isVerified?: boolean;
         fullName?: string;
         username?: string;
         email?: string;
-        role? : string;
+        role?: string;
+        contact?: string;
+        profilePictureUrl?: string;
     }
 
     interface Session {
         user: {
-            _id?: string;
+            id?: string;
             isVerified?: boolean;
             fullName?: string;
             username?: string;
             email?: string;
-            role? : string;
+            role?: string;
+            contact?: string;
+            profilePictureUrl?: string;
         } & DefaultSession["user"]
     }
 }
 
 declare module "next-auth/jwt" {
     interface JWT {
-        _id?: string;
+        id?: string;
         isVerified?: boolean;
         fullName?: string;
         username?: string;
         email?: string;
-        role? : string;
+        contact?: string;
+        role?: string;
+        profilePictureUrl?: string;
     }
 }

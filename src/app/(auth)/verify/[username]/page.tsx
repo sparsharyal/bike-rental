@@ -1,7 +1,7 @@
 // src/app/(auth)/verify/[username]/page.tsx
 "use client"
 import React from 'react';
-import { useParams, useRouter } from "next/navigation";
+import { redirect, useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,6 +12,7 @@ import { ApiResponse } from "@/types/ApiResponse";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { signOut } from "next-auth/react";
 
 const VerifyAccount = () => {
     const router = useRouter();
@@ -29,19 +30,20 @@ const VerifyAccount = () => {
             const response = await axios.post(`/api/auth/verify-code`, {
                 username: params.username,
                 code: data.code
-            })
+            });
 
-            toast('Success', {
+            toast.success('Success', {
                 description: response.data.message
             });
 
+            signOut({ callbackUrl: "/sign-in", redirect: false });
             router.replace("/sign-in");
         }
         catch (error) {
-            console.error("Error in sign up of user", error);
+            console.error("Error in verifying user", error);
             const axiosError = error as AxiosError<ApiResponse>;
 
-            toast('Sign Up failed', {
+            toast.error('Verify user failed', {
                 description: axiosError.response?.data.message
             });
         }

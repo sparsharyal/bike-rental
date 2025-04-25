@@ -1,4 +1,3 @@
-// src/components/owner/BikeCard.tsx
 "use client";
 import React from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,52 +5,90 @@ import { Button } from "@/components/ui/button";
 import { Trash2, Edit } from "lucide-react";
 import Image from "next/image";
 import { Bike } from "@prisma/client";
-import { BikeImage } from "@prisma/client";
-
-export type BikeWithImages = Bike & {
-    images?: BikeImage[];
-};
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface BikeCardProps {
-    bike: BikeWithImages;
-    onEdit: (bike: BikeWithImages) => void;
-    onDelete: (bikeId: number) => void;
+    bike: Bike;
+    onEdit: () => void;
+    onDelete: () => void;
 }
 
 const BikeCard = ({ bike, onEdit, onDelete }: BikeCardProps) => {
+
     return (
-        <Card className="w-full max-w-md mx-auto my-4 shadow">
-            <CardHeader className="p-4">
-                <CardTitle className="text-xl font-semibold">{bike.bikeName}</CardTitle>
-                <CardDescription>{bike.bikeDescription}</CardDescription>
-            </CardHeader>
-            <CardContent className="p-4">
-                {bike.images && bike.images.length > 0 ? (
-                    <div className="relative w-full h-48 sm:h-64 md:h-72">
+        <Card className="w-full overflow-hidden shadow-lg hover:shadow-xl transition-shadow py-0 gap-3">
+            <CardHeader className="p-0">
+                <div className="relative h-55 w-full overflow-hidden">
+                    {bike.bikeImageUrl ? (
                         <Image
-                            src={bike.images[0].url}
+                            src={bike.bikeImageUrl}
                             alt={bike.bikeName}
                             fill
-                            className="object-cover rounded"
+                            className="object-cover"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         />
+                    ) : (
+                        <div className="w-full h-full bg-muted flex items-center justify-center">
+                            <span className="text-muted-foreground">No Image</span>
+                        </div>
+                    )}
+                </div>
+                <CardTitle className="px-4 pt-2 text-xl font-semibold">{bike.bikeName}</CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 text-sm">
+                {/* <h3 className="font-semibold text-lg">{bike.bikeName}</h3> */}
+                <CardDescription className="text-sm text-muted-foreground line-clamp-2">{bike.bikeDescription}</CardDescription>
+                <div className="flex justify-between mt-3 items-center">
+                    <span className="font-bold text-2xl">₹ {bike.pricePerDay.toString()}/day</span>
+                    <div className="flex flex-col gap-1">
+                        <div>
+                            <span className="font-semibold">Bike Type:</span>
+                            <span className="text-muted-foreground"> {bike.bikeType}</span>
+                        </div>
+                        <div>
+                            <span className="font-semibold">Location:</span>
+                            <span className="text-muted-foreground"> {bike.bikeLocation}</span>
+                        </div>
                     </div>
-                ) : (
-                    <div className="w-full h-48 sm:h-64 md:h-72 bg-gray-200 flex items-center justify-center rounded">
-                        <span className="text-gray-500 text-sm">No Image Available</span>
-                    </div>
-                )}
-                <div className="mt-4 space-y-1">
-                    <p className="text-sm"><span className="font-semibold">Location:</span> {bike.bikeLocation}</p>
-                    <p className="text-sm"><span className="font-semibold">Price/Hour:</span> ${bike.pricePerHour.toString()}</p>
                 </div>
             </CardContent>
-            <CardFooter className="p-4 flex justify-end gap-2">
-                <Button variant="outline" size="sm" onClick={() => onEdit(bike)}>
-                    <Edit className="h-4 w-4 mr-1" /> <span className="hidden sm:inline">Edit</span>
+
+            <CardFooter className="p-4! flex gap-2 justify-end border-t">
+                <Button variant="outline" size="sm" onClick={onEdit}>
+                    <Edit className="h-4 w-4 mr-2" /> Edit
                 </Button>
-                <Button variant="destructive" size="sm" onClick={() => onDelete(bike.id)}>
-                    <Trash2 className="h-4 w-4 mr-1" /><span className="hidden sm:inline">Delete</span>
-                </Button>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="sm">
+                            <Trash2 className="h-4 w-4 mr-2" /> Delete
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete the bike
+                                <strong> "{bike.bikeName}"</strong> and remove their data from the system.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={onDelete}>
+                                Confirm Delete
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </CardFooter>
         </Card>
     );

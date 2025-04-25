@@ -13,11 +13,18 @@ enum Role {
     admin
 }
 
+enum BikeType {
+    city
+    mountain
+    electric
+}
+
 enum BookingStatus {
     pending
     active
     completed
     cancelled
+    failed
 }
 
 enum Rating {
@@ -66,27 +73,29 @@ model Message {
 model Bike {
     id              Int      @id @default(autoincrement())
     bikeName        String   @db.VarChar(255)
+    bikeType        BikeType @default(city)
     bikeDescription String   @db.Text
     bikeLocation    String   @db.VarChar(255)
-    pricePerHour    Decimal  @db.Decimal(10, 2)
+    pricePerDay     Decimal  @db.Decimal(10, 2)
+    bikeImageUrl    String?  @db.VarChar(500)
     available       Boolean  @default(true)
     createdAt       DateTime @default(now())
     updatedAt       DateTime @updatedAt
     ownerId         Int
 
     // Relationships
-    owner    User        @relation(fields: [ownerId], references: [id])
+    owner    User      @relation(fields: [ownerId], references: [id])
     bookings Booking[]
     reviews  Review[]
-    images   BikeImage[]
+    // images   BikeImage[]
 }
 
-model BikeImage {
-    id     Int    @id @default(autoincrement())
-    url    String @db.VarChar(500)
-    bike   Bike   @relation(fields: [bikeId], references: [id])
-    bikeId Int
-}
+// model BikeImage {
+//     id     Int    @id @default(autoincrement())
+//     url    String @db.VarChar(500)
+//     bike   Bike   @relation(fields: [bikeId], references: [id])
+//     bikeId Int
+// }
 
 model Booking {
     id               Int           @id @default(autoincrement())
@@ -134,15 +143,21 @@ model Notification {
 }
 
 model Payment {
-    id            Int      @id @default(autoincrement())
-    transactionId String   @db.VarChar(255) // Token or transaction id from payment gateway
+    id            Int           @id @default(autoincrement())
+    transactionId String        @unique @db.VarChar(255) // Token or transaction id from payment gateway
     amount        Float
-    method        String   @db.VarChar(255) // e.g., "Khalti"
-    status        String   @db.VarChar(255) // e.g., "Success", "Pending", "Failed"
-    createdAt     DateTime @default(now())
-    updatedAt     DateTime @updatedAt
-    bookingId     Int      @unique // One-to-one: each booking has one payment
+    method        String        @db.VarChar(255) // e.g., "Khalti"
+    status        PaymentStatus @default(pending) // e.g., "Success", "Pending", "Failed"
+    createdAt     DateTime      @default(now())
+    updatedAt     DateTime      @updatedAt
+    bookingId     Int           @unique // One-to-one: each booking has one payment
 
     // Relationship: Each Payment is linked to one Booking
     booking Booking @relation(fields: [bookingId], references: [id])
+}
+
+enum PaymentStatus {
+    success
+    pending
+    failed
 }
