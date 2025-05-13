@@ -1,11 +1,16 @@
+// src/model/Review.ts
 import prisma from "@/lib/prisma";
 import { Review, Rating } from "@prisma/client";
 
 export async function createReview(data: {
     customerId: number;
+    customerName: string;
+    customerProfilePictureUrl: string;
     bikeId: number;
     rating: Rating;
     comment: string;
+    rideJourneyId: number;
+    reviewBikeImageUrl?: string;
 }): Promise<Review> {
     return await prisma.review.create({
         data: {
@@ -13,6 +18,11 @@ export async function createReview(data: {
             bikeId: data.bikeId,
             rating: data.rating,
             comment: data.comment,
+            customerName: data.customerName,
+            customerProfilePictureUrl: data.customerProfilePictureUrl,
+            rideJourneyId: data.rideJourneyId,
+            reviewBikeImageUrl: data.reviewBikeImageUrl
+
         },
     });
 }

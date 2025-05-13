@@ -16,30 +16,27 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { FaUserCircle, FaSignOutAlt, FaClipboardList, FaLocationArrow, FaUserPlus, FaBars, FaTimes } from 'react-icons/fa';
+import { FaUserCircle, FaSignOutAlt, FaClipboardList, FaLocationArrow, FaUserPlus, FaBars, FaTimes, FaHome } from 'react-icons/fa';
 import { signOut } from "next-auth/react";
-import { User } from "next-auth";
+import { Session, User } from "next-auth";
+import {
+    NotificationFeedPopover,
+    NotificationIconButton,
+} from "@knocklabs/react";
+import PortalWrapper from "../PortalWrapper";
 import axios, { AxiosError } from "axios";
 import { ApiResponse } from "@/types/ApiResponse";
 import { toast } from "sonner";
 
 
-interface CurrentUser {
-    id?: string,
-    fullName?: string;
-    username?: string;
-    email?: string;
-    role?: string;
-    profilePictureUrl?: string;
-}
-
 interface SideBarProps {
-    currentUser: CurrentUser;
+    session: Session | null;
+    currentUser?: User | null;
 }
 
-const SideBar: React.FC<SideBarProps> = ({ currentUser }) => {
-    const [user, setUser] = useState<User | null>(null);
-    const userId = Number(currentUser?.id);
+const SideBar: React.FC<SideBarProps> = ({ session, currentUser }) => {
+    // const [user, setUser] = useState<User | null>(null);
+    // const userId = Number(currentUser?.id);
 
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -47,26 +44,34 @@ const SideBar: React.FC<SideBarProps> = ({ currentUser }) => {
     const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
 
     const popupRef = useRef<HTMLDivElement>(null);
+    const [feedOpen, setFeedOpen] = useState(false);
+    const notifButtonRef = useRef<HTMLButtonElement>(null);
 
     const handleToggleProfile = () => setIsProfileOpen((prev) => !prev);
     const handleMobileToggle = () => setIsMobileOpen((prev) => !prev);
 
-    const fetchUser = async () => {
-        try {
-            const { data } = await axios.get<{ success: boolean; user: User }>(`/api/auth/edit-profile/${userId}`);
-            setUser(data.user);
-        }
-        catch (error) {
-            const axiosError = error as AxiosError<ApiResponse>;
-            toast.error(axiosError.response?.data.message);
-        }
-    };
+    if (session && !currentUser) {
+        signOut();
+        return null;
+    }
 
-    useEffect(() => {
-        if (userId) {
-            fetchUser();
-        }
-    }, [userId]);
+
+    // const fetchUser = async () => {
+    //     try {
+    //         const { data } = await axios.get<{ success: boolean; user: User }>(`/api/auth/edit-profile/${userId}`);
+    //         setUser(data.user);
+    //     }
+    //     catch (error) {
+    //         const axiosError = error as AxiosError<ApiResponse>;
+    //         toast.error(axiosError.response?.data.message);
+    //     }
+    // };
+
+    // useEffect(() => {
+    //     if (userId) {
+    //         fetchUser();
+    //     }
+    // }, [userId]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -110,20 +115,20 @@ const SideBar: React.FC<SideBarProps> = ({ currentUser }) => {
     return (
         <>
             {/* Mobile Header */}
-            <header className="md:hidden flex items-center justify-between bg-gray-800 text-gray-200 p-4 shadow-md">
+            <header className="sticky top-0 inset-x-0 z-500 md:hidden flex items-center justify-between bg-gray-800 text-gray-200 p-4 shadow-md">
                 <Button onClick={handleMobileToggle} className="focus:outline-none">
                     {isMobileOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
                 </Button>
             </header>
 
             {/* Sidebar - Visible on Desktop or Mobile when toggled */}
-            <div className="flex">
+            <div className="flex bg-gray-800">
                 <aside
                     // className={`${isMobileOpen ? "fixed top-0 inset-y-0 left-0 z-40" : "hidden"
                     //     } md:static md:flex flex-col w-64 bg-gray-800 text-gray-200 p-4 shadow-md transition-transform duration-300 ease-in-out`}
-                    
+
                     className={`
-                        ${isMobileOpen ? "fixed top-0 inset-y-0 left-0 z-40" : "hidden"}
+                        ${isMobileOpen ? "fixed top-0 inset-y-0 left-0 z-500" : "hidden"}
                         md:sticky md:top-0 md:h-screen md:overflow-y-auto md:flex
                         flex-col w-64 bg-gray-800 text-gray-200 p-4 shadow-md
                         transition-transform duration-300 ease-in-out
@@ -156,7 +161,16 @@ const SideBar: React.FC<SideBarProps> = ({ currentUser }) => {
                         <ul className="space-y-4">
                             <li>
                                 <Link
-                                    href={`/${currentUser.username}/admin/owners`}
+                                    href="/"
+                                    className="flex items-center px-4 py-2 hover:bg-gray-700 rounded"
+                                    onClick={() => setIsMobileOpen(false)}
+                                >
+                                    <FaHome className="mr-3" /> Dashboard
+                                </Link>
+                            </li>
+                            <li>
+                                <Link
+                                    href={`/${currentUser?.username}/admin/owners`}
                                     className="flex items-center px-4 py-2 hover:bg-gray-700 rounded"
                                     onClick={() => setIsMobileOpen(false)}
                                 >
@@ -165,7 +179,7 @@ const SideBar: React.FC<SideBarProps> = ({ currentUser }) => {
                             </li>
                             <li>
                                 <Link
-                                    href={`/${currentUser.username}/admin/live-tracking`}
+                                    href={`/${currentUser?.username}/admin/live-tracking`}
                                     className="flex items-center px-4 py-2 hover:bg-gray-700 rounded"
                                     onClick={() => setIsMobileOpen(false)}
                                 >
@@ -174,7 +188,7 @@ const SideBar: React.FC<SideBarProps> = ({ currentUser }) => {
                             </li>
                             <li>
                                 <Link
-                                    href={`/${currentUser.username}/admin/rental-report`}
+                                    href={`/${currentUser?.username}/admin/rental-report`}
                                     className="flex items-center px-4 py-2 hover:bg-gray-700 rounded"
                                     onClick={() => setIsMobileOpen(false)}
                                 >
@@ -183,7 +197,7 @@ const SideBar: React.FC<SideBarProps> = ({ currentUser }) => {
                             </li>
                             <li>
                                 <Link
-                                    href={`/${currentUser.username}/admin/transactions`}
+                                    href={`/${currentUser?.username}/admin/transaction-report`}
                                     className="flex items-center px-4 py-2 hover:bg-gray-700 rounded"
                                     onClick={() => setIsMobileOpen(false)}
                                 >
@@ -194,7 +208,7 @@ const SideBar: React.FC<SideBarProps> = ({ currentUser }) => {
                     </nav>
 
                     {/* Profile Section */}
-                    <div className="relative mb-13">
+                    <div className="relative mb-7">
                         {isProfileOpen && (
                             <div
                                 ref={popupRef}
@@ -203,7 +217,7 @@ const SideBar: React.FC<SideBarProps> = ({ currentUser }) => {
                                 <ul>
                                     <li>
                                         <Link
-                                            href={`/${user?.username}/admin/my-profile`}
+                                            href={`/${currentUser?.username}/admin/my-profile`}
                                             className="flex items-center px-4 py-2 hover:bg-gray-600 hover:rounded-t-xl w-full"
                                             onClick={() => {
                                                 setIsProfileOpen(false);
@@ -259,11 +273,11 @@ const SideBar: React.FC<SideBarProps> = ({ currentUser }) => {
                         <div onClick={handleToggleProfile} className="flex items-center gap-3 cursor-pointer">
                             <Avatar className="h-10 w-10 border-1 border-amber-50">
                                 <AvatarImage
-                                    src={user?.profilePictureUrl || undefined}
-                                    alt={user?.fullName || user?.username || "Owner"}
+                                    src={currentUser?.profilePictureUrl || undefined}
+                                    alt={currentUser?.fullName || currentUser?.username || "Owner"}
                                 />
                                 <AvatarFallback>
-                                    {(user?.fullName || user?.username || "O")
+                                    {(currentUser?.fullName || currentUser?.username || "O")
                                         .split(" ")
                                         .map((n) => n[0])
                                         .join("")
@@ -272,10 +286,28 @@ const SideBar: React.FC<SideBarProps> = ({ currentUser }) => {
                                 </AvatarFallback>
                             </Avatar>
                             <span className="font-semibold text-sm sm:text-base">
-                                {user?.fullName || user?.username || user?.email || "Admin"}
+                                {currentUser?.fullName || currentUser?.username || currentUser?.email || "Admin"}
                             </span>
                         </div>
                     </div>
+
+                    {currentUser ? (
+                        <div className="flex items-center gap-4 justify-center">
+                            <NotificationIconButton
+                                ref={notifButtonRef}
+                                onClick={() => setFeedOpen((v) => !v)}
+                            />
+                            {feedOpen && (
+                                <PortalWrapper>
+                                    <NotificationFeedPopover
+                                        buttonRef={notifButtonRef as React.RefObject<HTMLElement>}
+                                        isVisible={true}
+                                        onClose={() => setFeedOpen(false)}
+                                    />
+                                </PortalWrapper>
+                            )}
+                        </div>
+                    ) : null}
                 </aside>
 
                 {/* Mobile Sidebar Overlay */}

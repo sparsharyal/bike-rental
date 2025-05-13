@@ -26,7 +26,8 @@ import {
     SelectLabel,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import BikeCard from "@/components/owner/BikeCard";
@@ -45,11 +46,14 @@ import Image from "next/image";
 const OwnerBikes = () => {
     const router = useRouter();
     const { data: session, status } = useSession();
-    const currentUser = session?.user;
+    let currentUser: any;
+    if (session?.user) {
+        currentUser = session.user;
+    }
     const ownerId = Number(currentUser?.id);
 
     const [bikes, setBikes] = useState<Bike[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [preview, setPreview] = useState<string>("");
     const [editingBike, setEditingBike] = useState<Bike | null>(null);
@@ -78,8 +82,8 @@ const OwnerBikes = () => {
     const fetchBikes = async () => {
         try {
             const ownerId = Number(currentUser?.id);
-            const response = await axios.get<Bike[]>(`/api/bikes/owner?ownerId=${ownerId}`);
-            setBikes(response.data);
+            const response = await axios.get<{ bikes: Bike[] }>(`/api/bikes/owner?ownerId=${ownerId}`);
+            setBikes(response.data.bikes);
         }
         catch (error) {
             const axiosError = error as AxiosError<ApiResponse>;
@@ -103,7 +107,9 @@ const OwnerBikes = () => {
         });
         setPreview("");
         setEditingBike(null);
-        if (fileInputRef.current) fileInputRef.current.value = "";
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
     }
 
     const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -198,8 +204,8 @@ const OwnerBikes = () => {
     }
 
     return (
-        <section className="p-4 md:p-6 mx-auto">
-            <div className="flex flex-col sm:flex-row items-center justify-between mb-6">
+        <section className="px-4 py-2 md:px-6 md:py-2 mx-auto">
+            <div className="sticky md:top-0 top-16 inset-x-0 z-25 py-4 md:py-4 bg-white dark:bg-gray-800 flex flex-col gap-3 sm:flex-row items-center justify-between border-b border-gray-200">
                 <h1 className="text-2xl font-bold text-gray-800">Manage Bikes</h1>
                 <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                     <DialogTrigger asChild>
@@ -208,7 +214,7 @@ const OwnerBikes = () => {
                             Add Bike
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-md max-h-200 overflow-y-scroll">
+                    <DialogContent className="sm:max-w-md max-h-200 overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>{editingBike ? "Update Bike Details" : "Add New Bike Deatils"}</DialogTitle>
                         </DialogHeader>
@@ -259,7 +265,7 @@ const OwnerBikes = () => {
                                         <FormItem>
                                             <FormLabel>Description</FormLabel>
                                             <FormControl>
-                                                <Textarea {...field} placeholder="Enter description" />
+                                                <Textarea {...field} placeholder="Enter description" className="min-h-20 max-h-30" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -291,6 +297,25 @@ const OwnerBikes = () => {
                                         </FormItem>
                                     )}
                                 />
+
+                                {/* ─── AVAILABILITY SWITCH ─── */}
+                                <FormField
+                                    name="available"
+                                    control={form.control}
+                                    render={({ field }) => (
+                                        <FormItem className="flex items-center justify-between flex-row rounded-lg border p-3 shadow-sm">
+                                            <FormLabel>Bike Available</FormLabel>
+                                            <FormControl>
+                                                <Switch
+                                                    checked={field.value}
+                                                    onCheckedChange={field.onChange}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
                                 <FormItem>
                                     <FormLabel>Bike Image</FormLabel>
                                     <FormControl>
@@ -316,7 +341,7 @@ const OwnerBikes = () => {
                                     </div>
                                 )}
 
-                                <div className="flex justify-evenly items-center gap-2">
+                                <div className="flex justify-evenly items-center gap-4">
                                     <Button type="submit" className="flex-1" disabled={loading}>
                                         {editingBike ? (loading ? "Updating..." : "Update") : (loading ? "Adding..." : "Add")}
                                         {loading && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
@@ -340,11 +365,12 @@ const OwnerBikes = () => {
                     {bikes.length === 0 ? (
                         <p className="p-4 text-gray-600">No bikes found.</p>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
                             {bikes.map((bike) => (
                                 <BikeCard
                                     key={bike.id}
                                     bike={bike}
+                                    currentUser={currentUser!}
                                     onEdit={() => handleEdit(bike)}
                                     onDelete={() => handleDelete(bike.id)}
                                 />

@@ -42,20 +42,13 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-// type Bike = {
-//     id: number;
-//     bikeName: string;
-//     bikeDescription: string;
-//     bikeLocation: string;
-//     pricePerDay: number;
-//     bikeImageUrl?: string[];
-// };
 
 const RentBike = () => {
     const { data: session, status } = useSession();
     const router = useRouter();
     const [bookingLoading, setBookingLoading] = useState(false);
 
+    const [bikeName, setBikeName] = useState("");
     const [location, setLocation] = useState("");
     const [type, setType] = useState("");
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
@@ -73,36 +66,39 @@ const RentBike = () => {
     const [selectedBike, setSelectedBike] = useState<Bike | null>(null);
 
     // whenever any filter/sort/page changes, re-fetch
+    const fetchBikes = async () => {
+        setLoading(true);
+        const qp = new URLSearchParams();
+        if (bikeName) qp.set("bikeName", bikeName);
+        if (location) qp.set("location", location);
+        if (type) qp.set("type", type);
+        qp.set("minPrice", priceRange[0].toString());
+        qp.set("maxPrice", priceRange[1].toString());
+        qp.set("sortBy", sortBy);
+        qp.set("page", page.toString());
+        qp.set("pageSize", pageSize.toString());
+
+        const res = await fetch(`/api/bikes?${qp.toString()}`);
+        const json = await res.json();
+        setBikes(json.bikes || []);
+        setTotal(json.total || 0);
+        setLoading(false);
+    };
+
     useEffect(() => {
-        const fetchBikes = async () => {
-            setLoading(true);
-            const qp = new URLSearchParams();
-            if (location) qp.set("location", location);
-            if (type) qp.set("type", type);
-            qp.set("minPrice", priceRange[0].toString());
-            qp.set("maxPrice", priceRange[1].toString());
-            qp.set("sortBy", sortBy);
-            qp.set("page", page.toString());
-            qp.set("pageSize", pageSize.toString());
-
-            const res = await fetch(`/api/bikes?${qp.toString()}`);
-            const json = await res.json();
-            setBikes(json.bikes || []);
-            setTotal(json.total || 0);
-            setLoading(false);
-        };
-
         fetchBikes();
-    }, [location, type, priceRange, sortBy, page]);
+    }, [bikeName, location, type, priceRange, sortBy, page]);
 
     const totalPages = Math.ceil(total / pageSize);
 
     const resetFilters = () => {
+        setBikeName("");
         setLocation("");
         setType("");
         setPriceRange([0, 10000]);
         setSortBy("newest");
         setPage(1);
+        fetchBikes();
     };
 
     // form for booking
@@ -111,6 +107,7 @@ const RentBike = () => {
         defaultValues: {
             customerId: session?.user?.id ? Number(session.user.id) : undefined,
             bikeId: selectedBike?.id,
+            ownerId: selectedBike?.ownerId,
             startTime: "",
             endTime: "",
             totalPrice: 0,
@@ -140,6 +137,28 @@ const RentBike = () => {
 
     // when user clicks “Rent Now”
     const handleRentClick = (bike: Bike) => {
+        // if (status === "unauthenticated" || !session || session?.user.role !== "customer") {
+        //     // kick to sign-in
+        //     toast.error("Booking Failed!", { description: "You need to sign in for renting a bike" });
+        //     signIn("credentials", { redirect: false });
+        //     router.replace("/sign-in");
+        //     return;
+        // }
+
+        // prefill bikeId & customer
+        const hourlyRate = Number(bike.pricePerDay);
+        form.reset({
+            customerId: Number(session?.user.id),
+            bikeId: bike.id,
+            ownerId: bike.ownerId,
+            startTime: "",
+            endTime: "",
+            totalPrice: Number(hourlyRate.toFixed(2)),
+        });
+        setSelectedBike(bike);
+    }
+
+    const checkSignedIn = () => {
         if (status === "unauthenticated" || !session || session?.user.role !== "customer") {
             // kick to sign-in
             toast.error("Booking Failed!", { description: "You need to sign in for renting a bike" });
@@ -147,16 +166,6 @@ const RentBike = () => {
             router.replace("/sign-in");
             return;
         }
-        // prefill bikeId & customer
-        const hourlyRate = Number(bike.pricePerDay);
-        form.reset({
-            customerId: Number(session.user.id),
-            bikeId: bike.id,
-            startTime: "",
-            endTime: "",
-            totalPrice: Number(hourlyRate.toFixed(2)),
-        });
-        setSelectedBike(bike);
     }
 
     // on booking submit
@@ -168,6 +177,7 @@ const RentBike = () => {
         if (new Date(data.endTime) <= new Date(data.startTime)) {
             return toast.error("End date must be after start date");
         }
+
 
         setBookingLoading(true);
 
@@ -212,16 +222,52 @@ const RentBike = () => {
                 {/* Location */}
                 <div>
                     <Label className="block text-sm font-semibold mb-1">
+                        Bike Name
+                    </Label>
+                    <Input
+                        placeholder="e.g. Harley Davidson"
+                        value={bikeName}
+                        onChange={(e) => {
+                            setBikeName(e.target.value);
+                            setPage(1);
+                        }}
+                    />
+                </div>
+
+                {/* Location */}
+                <div>
+                    <Label className="block text-sm font-semibold mb-1">
                         Pick-up Location
                     </Label>
                     <Input
-                        placeholder="e.g. Kathmandu"
+                        placeholder="e.g. New Baneshwor"
                         value={location}
                         onChange={(e) => {
                             setLocation(e.target.value);
                             setPage(1);
                         }}
                     />
+                </div>
+
+                {/* Price */}
+                <div className="sm:col-span-2">
+                    <Label className="block text-sm font-semibold mb-1">
+                        Price / Day (₹)
+                    </Label>
+                    <Slider
+                        min={0}
+                        max={10000}
+                        step={1}
+                        value={priceRange}
+                        onValueChange={(v) => {
+                            setPriceRange(v as [number, number]);
+                            setPage(1);
+                        }}
+                    />
+                    <div className="flex justify-between text-xs text-gray-600 mt-1">
+                        <span>₹ {priceRange[0]}</span>
+                        <span>₹ {priceRange[1]}</span>
+                    </div>
                 </div>
 
                 {/* Type */}
@@ -246,27 +292,6 @@ const RentBike = () => {
                     </Select>
                 </div>
 
-                {/* Price */}
-                <div className="sm:col-span-2">
-                    <Label className="block text-sm font-semibold mb-1">
-                        Price / Day (₹)
-                    </Label>
-                    <Slider
-                        min={0}
-                        max={10000}
-                        step={1}
-                        value={priceRange}
-                        onValueChange={(v) => {
-                            setPriceRange(v as [number, number]);
-                            setPage(1);
-                        }}
-                    />
-                    <div className="flex justify-between text-xs text-gray-600 mt-1">
-                        <span>₹ {priceRange[0]}</span>
-                        <span>₹ {priceRange[1]}</span>
-                    </div>
-                </div>
-
                 {/* Sort */}
                 <div>
                     <Label className="block text-sm font-semibold mb-1">Sort By</Label>
@@ -289,7 +314,7 @@ const RentBike = () => {
                 </div>
 
                 {/* Reset */}
-                <div className="lg:col-span-2 flex justify-end items-center">
+                <div className="lg:col-span-2 flex items-center">
                     <Button variant="outline" onClick={resetFilters}>
                         Reset Filters
                     </Button>
@@ -302,7 +327,7 @@ const RentBike = () => {
                     <Loader2 className="animate-spin h-8 w-8 text-green-600" />
                 </div>
             ) : bikes.length ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {bikes.map((bike) => (
                         <BikeCard key={bike.id} bike={bike as any} onRent={() => handleRentClick(bike)} />
                     ))}
@@ -403,7 +428,7 @@ const RentBike = () => {
                                     )}
                                 />
                                 <DialogFooter className="pt-4">
-                                    <Button type="submit" className="w-full">
+                                    <Button type="submit" className="w-full" onClick={() => checkSignedIn()}>
                                         {bookingLoading ? (
                                             <>
                                                 Booking… <Loader2 className="animate-spin ml-2 h-4 w-4" />

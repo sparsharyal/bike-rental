@@ -1,3 +1,4 @@
+// prisma/schema.prisma
 generator client {
     provider = "prisma-client-js"
 }
@@ -27,6 +28,11 @@ enum BookingStatus {
     failed
 }
 
+enum RideJourneyStatus {
+    active
+    completed
+}
+
 enum Rating {
     one   @map("1")
     two   @map("2")
@@ -43,12 +49,12 @@ model User {
     password                           String    @db.VarChar(255)
     contact                            String    @db.VarChar(255)
     profilePictureUrl                  String?   @db.VarChar(500)
+    role                               Role      @default(customer)
+    isVerified                         Boolean   @default(false)
     verifyCode                         String?   @db.VarChar(255)
     verifyCodeExpiryDate               DateTime?
-    isVerified                         Boolean   @default(false)
     verifyEmailResetPassword           String?   @db.VarChar(255)
     verifyEmailResetPasswordExpiryDate DateTime?
-    role                               Role      @default(customer)
     createdAt                          DateTime  @default(now())
     updatedAt                          DateTime  @updatedAt
 
@@ -58,6 +64,10 @@ model User {
     bookings      Booking[]
     reviews       Review[]
     notifications Notification[]
+    // invoices      Invoice[]
+
+    rideJourney  RideJourney[]
+    damageReport DamageReport[]
 }
 
 model Message {
@@ -65,9 +75,9 @@ model Message {
     content   String   @db.Text
     createdAt DateTime @default(now())
 
-    // Optional relation to associate message with a user
-    user   User? @relation(fields: [userId], references: [id])
     userId Int?
+    // Optional relation to associate message with a user
+    user   User? @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model Bike {
@@ -84,18 +94,16 @@ model Bike {
     ownerId         Int
 
     // Relationships
-    owner    User      @relation(fields: [ownerId], references: [id])
-    bookings Booking[]
-    reviews  Review[]
-    // images   BikeImage[]
-}
+    owner        User           @relation(fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    bookings     Booking[]      @relation(name: "BookingToBike")
+    reviews      Review[]       @relation(name: "ReviewToBike")
+    // invoices Invoice[] @relation(name: "InvoiceToBike")
+    rideJourney  RideJourney[]
+    damageReport DamageReport[]
 
-// model BikeImage {
-//     id     Int    @id @default(autoincrement())
-//     url    String @db.VarChar(500)
-//     bike   Bike   @relation(fields: [bikeId], references: [id])
-//     bikeId Int
-// }
+    @@index([bikeType])
+    @@index([available])
+}
 
 model Booking {
     id               Int           @id @default(autoincrement())
@@ -106,26 +114,87 @@ model Booking {
     paymentReference String?
     createdAt        DateTime      @default(now())
     updatedAt        DateTime      @updatedAt
-    customerId       Int
-    bikeId           Int
+    customerId       Int?
+    bikeId           Int?
+    ownerId          Int?
 
     // Relationships
-    customer User     @relation(fields: [customerId], references: [id])
-    bike     Bike     @relation(fields: [bikeId], references: [id])
-    payment  Payment? // Optional one-to-one relation with Payment
+    customer     User?          @relation(fields: [customerId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+    bike         Bike?          @relation(fields: [bikeId], references: [id], onDelete: SetNull, onUpdate: Cascade, name: "BookingToBike")
+    payment      Payment[]
+    // Invoice  Invoice[]
+    rideJourney  RideJourney[]
+    damageReport DamageReport[]
+
+    @@index([status])
+    @@index([startTime, endTime])
 }
 
-model Review {
-    id         Int      @id @default(autoincrement())
-    rating     Rating
-    comment    String   @db.Text
-    createdAt  DateTime @default(now())
+model RideJourney {
+    id         Int               @id @default(autoincrement())
+    startTime  DateTime?
+    endTime    DateTime?
+    status     RideJourneyStatus @default(active)
+    createdAt  DateTime          @default(now())
+    updatedAt  DateTime          @updatedAt
+    bookingId  Int
     customerId Int
     bikeId     Int
 
+    booking  Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    customer User    @relation(fields: [customerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    bike     Bike    @relation(fields: [bikeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+    trackingPaths  TrackingPaths[]  @relation("JourneyPaths")
+    trackingPoints TrackingPoints[] @relation("JourneyPoints")
+    Review         Review[]
+
+    @@index([status])
+    @@index([startTime, endTime])
+}
+
+model TrackingPaths {
+    id            Int      @id @default(autoincrement())
+    rideJourneyId Int
+    pathJson      Json
+    recordedAt    DateTime @default(now())
+
+    rideJourney RideJourney @relation("JourneyPaths", fields: [rideJourneyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+    @@index([rideJourneyId])
+}
+
+model TrackingPoints {
+    id            BigInt @id @default(autoincrement())
+    rideJourneyId Int
+    lat           Float
+    lng           Float
+    timestamp     BigInt
+
+    rideJourney RideJourney @relation("JourneyPoints", fields: [rideJourneyId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+    @@index([rideJourneyId])
+}
+
+model Review {
+    id                        Int      @id @default(autoincrement())
+    rating                    Rating
+    comment                   String   @db.Text
+    customerId                Int?
+    customerName              String
+    customerProfilePictureUrl String?  @db.VarChar(500)
+    bikeId                    Int
+    createdAt                 DateTime @default(now())
+    updatedAt                 DateTime @updatedAt
+    rideJourneyId             Int?
+    reviewBikeImageUrl        String?  @db.VarChar(500)
+
     // Relationships
-    customer User @relation(fields: [customerId], references: [id])
-    bike     Bike @relation(fields: [bikeId], references: [id])
+    customer    User?        @relation(fields: [customerId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+    bike        Bike         @relation(fields: [bikeId], references: [id], onDelete: Cascade, onUpdate: Cascade, name: "ReviewToBike")
+    rideJourney RideJourney? @relation(fields: [rideJourneyId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+    @@index([rating])
 }
 
 model Notification {
@@ -139,7 +208,7 @@ model Notification {
     userId    Int
 
     // Relationship: Each notification belongs to a user
-    user User @relation(fields: [userId], references: [id])
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model Payment {
@@ -150,9 +219,8 @@ model Payment {
     status        PaymentStatus @default(pending) // e.g., "Success", "Pending", "Failed"
     createdAt     DateTime      @default(now())
     updatedAt     DateTime      @updatedAt
-    bookingId     Int           @unique // One-to-one: each booking has one payment
+    bookingId     Int
 
-    // Relationship: Each Payment is linked to one Booking
     booking Booking @relation(fields: [bookingId], references: [id])
 }
 
@@ -160,4 +228,67 @@ enum PaymentStatus {
     success
     pending
     failed
+}
+
+model Invoice {
+    id              Int      @id @default(autoincrement())
+    customerName    String
+    customerContact String
+    ownerName       String
+    ownerContact    String
+    bikeName        String
+    bikeType        String
+    startTime       DateTime
+    endTime         DateTime
+    pricePerDay     Decimal  @db.Decimal(10, 2)
+    totalPrice      Float
+    paymentMethod   String   @db.VarChar(255)
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
+    customerId      Int
+    bikeId          Int
+    transactionId   String   @unique
+    bookingId       Int?
+
+    // customer User? @relation(fields: [customerId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+    // bike     Bike? @relation(fields: [bikeId], references: [id], onDelete: SetNull, onUpdate: Cascade, name: "InvoiceToBike")
+    // Booking   Booking? @relation(fields: [bookingId], references: [id])
+    // bookingId Int?
+
+    @@index([startTime, endTime])
+}
+
+model DamageReport {
+    id                        Int                @id @default(autoincrement())
+    bikeId                    Int?
+    customerId                Int?
+    customerName              String?
+    customerProfilePictureUrl String?            @db.VarChar(500)
+    description               String
+    status                    DamageReportStatus @default(pending) // pending, reviewed, resolved
+    createdAt                 DateTime           @default(now())
+    updatedAt                 DateTime           @updatedAt
+    ownerId                   Int?
+    bookingId                 Int?
+
+    customer User?                @relation(fields: [customerId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+    bike     Bike?                @relation(fields: [bikeId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+    booking  Booking?             @relation(fields: [bookingId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+    images   DamageReportImages[]
+}
+
+model DamageReportImages {
+    id             Int      @id @default(autoincrement())
+    damageReportId Int
+    imageUrl       String   @db.VarChar(500) // Cloudinary URLs
+    createdAt      DateTime @default(now())
+    updatedAt      DateTime @updatedAt
+
+    damageReport DamageReport @relation(fields: [damageReportId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+}
+
+enum DamageReportStatus {
+    pending
+    reviewed
+    resolved
 }

@@ -1,6 +1,7 @@
 // src/api/payments/esewa/callback/route.ts
 import { NextResponse } from "next/server";
-import { finalizePayment } from "@/model/Payment";
+import { finalizePaymentWithEsewa } from "@/model/Payment";
+import { sendNotification } from "@/helpers/sendNotification";
 
 export async function GET(req: Request) {
     const base64 = new URL(req.url).searchParams.get("data");
@@ -26,13 +27,30 @@ export async function GET(req: Request) {
     }
 
     // finalize (upsert payment & update booking)
-    await finalizePayment({
+    await finalizePaymentWithEsewa({
         transactionUuid: payload.transaction_uuid,
         gatewayRef: payload.transaction_code,
         status: payload.status === "COMPLETE" ? "success" : "failed",
     });
 
+    // try {
+    //     await sendNotification(
+    //         user.id.toString(),
+    //         "booking-created-customer",
+    //         {
+    //             customerName: customer.fullName,
+    //             bikeName: bike.bikeName,
+    //             start: booking.startTime.toISOString(),
+    //             end: booking.endTime.toISOString(),
+    //             totalPrice: booking.totalPrice
+    //         }
+    //     );
+    // }
+    // catch (err) {
+    //     console.error("Knock notification error:", err);
+    // }
+
     const result = payload.status === "COMPLETE" ? "success" : "failed";
-    return NextResponse.redirect(`${process.env.FRONTEND_URL}/payment/receipt?status=${result}`);
+    return NextResponse.redirect(`${process.env.FRONTEND_URL}/payment/receipt?status=${result}&transaction_id=${payload.transaction_uuid}`);
 }
 
