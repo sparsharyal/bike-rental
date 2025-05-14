@@ -101,10 +101,10 @@ SELECT * FROM `Notification`;
 
 
 INSERT INTO `User` (`id`, `fullName`, `email`, `contact`, `password`, `role`)
-VALUES (1, "Subham Adhikari", "bikebuddy_admin@gmail.com", "9876543210", "admin@123", "admin");
+VALUES (1, "Sparsh Aryal", "sparsharyal18@gmail.com", "9741689246", "user@123", "customer"), (2, "Rohit Adhikari", "bikebuddy_admin@gmail.com", "9741689246", "admin@123", "admin");
 
 ALTER TABLE `User` MODIFY `username` VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin;
-DELETE FROM `User` WHERE `email`="subhamadhikari0007@gmail.com";
+DELETE FROM `User` WHERE `email`="sparsharyal18@gmail.com";
 DELETE FROM `User` WHERE `id`= 7;
 DELETE FROM `Bike` WHERE `id`= 8;
 DELETE FROM `Booking` WHERE `id`= 35;
